@@ -78,7 +78,7 @@ inline constexpr std::array<std::array<Shape, ROTATION_STATES_NUM>, TYPE_NUM> Sh
         { L"..X." , L"..X." , L".XX." , L"...." },  // Rotation_0
         { L"X..." , L"XXX." , L"...." , L"...." },  // Rotation_90
         { L".XX." , L".X.." , L".X.." , L"...." },  // Rotation_180
-        { L"XXX." , L"...X" , L"...." , L"...." }   // Rotation_270
+        { L"XXX." , L"..X." , L"...." , L"...." }   // Rotation_270
     }},
     
     // [2] L 方块 (L-Block) - (已修正 R0 状态)
