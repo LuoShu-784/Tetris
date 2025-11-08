@@ -175,7 +175,7 @@ inline constexpr std::array<std::array<Shape, ROTATION_STATES_NUM>, TYPE_NUM> Sh
     // [6] Z 方块 (Z-Block)
     {{
         { L"XX.." , L".XX." , L"...." , L"...." },  // Rotation_0
-        { L"..X." , L".XX." , L".X.." , L"...." },  // Rotation_990 (应为 Rotation_90)
+        { L"..X." , L".XX." , L".X.." , L"...." },  // Rotation_99
         { L"XX.." , L".XX." , L"...." , L"...." },  // Rotation_180
         { L"..X." , L".XX." , L".X.." , L"...." }   // Rotation_270
     }}
