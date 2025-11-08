@@ -56,11 +56,11 @@ public:
     void lockBlock(const Block& block);
 
     /**
-     * @brief 检查并清除所有已满的行
+     * @brief 检查并清除所有已满的行,并返回消除的行数
      * @details 从下到上扫描网格, 如果发现某行已满则跳过 (不复制),
      * 将未满的行向下移动以覆盖已满的行, 最后将顶部的空行清零
      */
-    void clearFullLines();
+    int clearFullLines();
 
     /**
      * @brief 清空 (重置) 整个游戏区域网格, 全部填充为 0

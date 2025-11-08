@@ -73,14 +73,16 @@ void GameArea::lockBlock(const Block& block)
 }
 
 /**
- * @brief 消除满行
+ * @brief 消除满行,并返回消除的行数
  */
-void GameArea::clearFullLines()
+int GameArea::clearFullLines()
 {
+    int linesCleared { 0 };
     int py { gamearea::HEIGHT - 1 }; // 目标行 (写入)
     for (int y = gamearea::HEIGHT - 1; y >= 0; y--) // 原始行 (读取)
     {
         if (isLineFull(y)) {
+            linesCleared++;
             continue; // 如果 y 行满了, 跳过 (即删除)
         }
 
@@ -97,6 +99,7 @@ void GameArea::clearFullLines()
         std::fill(m_grid[py].begin(), m_grid[py].end(), 0);
         --py;
     }
+    return linesCleared;
 }
 
 /**
