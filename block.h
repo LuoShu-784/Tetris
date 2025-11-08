@@ -132,23 +132,23 @@ inline constexpr std::array<std::array<Shape, ROTATION_STATES_NUM>, TYPE_NUM> Sh
         { L"...." , L"XXXX" , L"...." , L"...." }   // Rotation_270
     }},
     
-    // [1] J 方块 (J-Block)
-    {{
+     // [1] J 方块 (J-Block)
+     {{
         { L"..X." , L"..X." , L".XX." , L"...." },  // Rotation_0
         { L"X..." , L"XXX." , L"...." , L"...." },  // Rotation_90
         { L".XX." , L".X.." , L".X.." , L"...." },  // Rotation_180
         { L"XXX." , L"..X." , L"...." , L"...." }   // Rotation_270
     }},
     
-    // [2] L 方块 (L-Block) - (已修正 R0 状态)
-    {{
+     // [2] L 方块 (L-Block)
+    {{  
         { L".X.." , L".X.." , L".XX." , L"...." },  // Rotation_0
         { L"...." , L"XXX." , L"X..." , L"...." },  // Rotation_90
-        { L"XX.." , L".X.." , L".X.." , L"...." },  // Rotation_180
+        { L"XX.. " , L".X.." , L".X..", L"...." },  // Rotation_180
         { L"..X." , L"XXX." , L"...." , L"...." }   // Rotation_270
     }},
     
-    // [3] O 方块 (O-Block)
+     // [3] O 方块 (O-Block)
     {{
         { L".XX." , L".XX." , L"...." , L"...." },  // Rotation_0
         { L".XX." , L".XX." , L"...." , L"...." },  // Rotation_90
@@ -159,9 +159,9 @@ inline constexpr std::array<std::array<Shape, ROTATION_STATES_NUM>, TYPE_NUM> Sh
     // [4] S 方块 (S-Block)
     {{
         { L".XX." , L"XX.." , L"...." , L"...." },  // Rotation_0
-        { L".X.." , L".XX." , L"...X" , L"...." },  // Rotation_90
+        { L".X.." , L".XX." , L"..X." , L"...." },  // Rotation_90
         { L".XX." , L"XX.." , L"...." , L"...." },  // Rotation_180
-        { L".X.." , L".XX." , L"...X" , L"...." }   // Rotation_270
+        { L".X.." , L".XX." , L"..X." , L"...." }   // Rotation_270
     }},
     
     // [5] T 方块 (T-Block)
