@@ -1,10 +1,21 @@
+/**
+ * @file screen.cpp
+ * @brief Screen 类的实现
+ * @details 实现了 Screen 中定义的 Windows 控制台双缓冲功能.
+ * @author LuoShu
+ * @version 1.0
+ * @date 2025-11-08
+ */
 #include "screen.h"
 #include <stdexcept>
 
+/**
+ * @brief 构造函数实现
+ */
 Screen::Screen()
     : m_hConsole(INVALID_HANDLE_VALUE) // 推荐初始化为无效值
 {
-    // 1. 创建一个新的屏幕缓冲区 (而不是获取标准句柄)
+    // 创建一个新的屏幕缓冲区 (而不是获取标准句柄)
     m_hConsole = CreateConsoleScreenBuffer(
         GENERIC_READ | GENERIC_WRITE,   // 读写权限
         0,                              // 不共享
@@ -17,21 +28,24 @@ Screen::Screen()
         throw std::runtime_error("Failed to create console screen buffer.");
     }
 
-    // 2. 将这个新缓冲区设为活动屏幕
+    // 将这个新缓冲区设为活动屏幕
     if (!SetConsoleActiveScreenBuffer(m_hConsole)) {
         throw std::runtime_error("Failed to set active console screen buffer.");
     }
     
-    // 3. 设置窗口标题 (这仍然有效)
-    SetConsoleTitleW(L"Tetris C++17 (Optimized)");
+    // 设置窗口标题
+    SetConsoleTitleW(screen::TITLE.data());
     
-    // 4. 初始化控制台 (隐藏光标等)
+    // 初始化控制台
     initConsole();
 
-    // 5. 清空缓冲区
+    // 清空缓冲区
     clearBuffer();
 }
 
+/**
+ * @brief 析构函数实现
+ */
 Screen::~Screen()
 {
     if (m_hConsole != INVALID_HANDLE_VALUE) {
@@ -39,10 +53,11 @@ Screen::~Screen()
     }
 }
 
+/**
+ * @brief 清空缓冲区.
+ */
 void Screen::clearBuffer(short color)
 {
-    // C++17: 结构化绑定 (这里不需要, 但知道)
-    // 我们用一个默认的 CHAR_INFO 填充
     CHAR_INFO defaultChar;
     defaultChar.Char.UnicodeChar = L' ';
     defaultChar.Attributes = color; // 默认属性 (例如: 黑底)
@@ -50,6 +65,9 @@ void Screen::clearBuffer(short color)
     m_buffer.fill(defaultChar); 
 }
 
+/**
+ * @brief 在缓冲区绘制单个字符
+ */
 void Screen::draw(int x, int y, wchar_t ch, short color)
 {
     if (isInConsole(x, y)) 
@@ -59,6 +77,9 @@ void Screen::draw(int x, int y, wchar_t ch, short color)
     }
 }
 
+/**
+ * @brief 在缓冲区绘制字符串
+ */
 void Screen::draw(int x, int y, std::wstring_view sv, short color)
 {
     for (size_t i = 0; i < sv.size(); ++i)
@@ -72,6 +93,9 @@ void Screen::draw(int x, int y, std::wstring_view sv, short color)
 }
 
 
+/**
+ * @brief 刷新屏幕
+ */
 void Screen::refresh()
 {
     
@@ -90,6 +114,9 @@ void Screen::refresh()
     );
 }
 
+/**
+ * @brief 初始化控制台设置
+ */
 void Screen::initConsole()
 {
     // 隐藏光标
@@ -99,6 +126,9 @@ void Screen::initConsole()
     SetConsoleCursorInfo(m_hConsole, &cursorInfo);
 }
 
+/**
+ * @brief 坐标边界检查
+ */
 bool Screen::isInConsole(int x, int y) const // 标记为 const
 {
     return x >= 0 && x < screen::WIDTH && y >= 0 && y < screen::HEIGHT;
