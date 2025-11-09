@@ -1,24 +1,50 @@
 /**
  * @file screen.cpp
- * @brief Screen 类的实现
- * @details 实现了 Screen 中定义的 Windows 控制台双缓冲功能.
+ * @brief Screen 类的实现 (支持真彩色)
+ * @details 实现了 Screen 中定义的 Windows 控制台功能.
  * @author LuoShu
- * @version 1.0
- * @date 2025-11-08
+ * @version 2.0
+ * @date 2025-11-09
  */
 #include "screen.h"
 #include <stdexcept>
+#include <string>
+#include <sstream>
+
+namespace {
+    /**
+     * @brief VT (Virtual Terminal) 转义序列常量
+     */
+
+    // 重置所有属性
+    constexpr std::wstring_view VT_RESET = L"\x1b[0m";
+    // SGR 命令的后缀
+    constexpr std::wstring_view VT_SGR_SUFFIX = L"m";
+    
+    // 设置前景色
+    constexpr std::wstring_view VT_FG_TRUECOLOR = L"\x1b[38;2;";
+    // 设置背景色
+    constexpr std::wstring_view VT_BG_TRUECOLOR = L"\x1b[48;2;";
+
+    // 将光标移至左上角 (0, 0)
+    constexpr std::wstring_view VT_CURSOR_HOME = L"\x1b[0;0H";
+    // 显示光标 (DEC private mode)
+    constexpr std::wstring_view VT_CURSOR_SHOW = L"\x1b[?25h";
+    // 隐藏光标 (DEC private mode)
+    constexpr std::wstring_view VT_CURSOR_HIDE = L"\x1b[?25l";
+}
+
 
 /**
- * @brief 构造函数实现
+ * @brief 构造函数
  */
 Screen::Screen()
-    : m_hConsole(INVALID_HANDLE_VALUE) // 推荐初始化为无效值
+    : m_hConsole(INVALID_HANDLE_VALUE) // 初始化为无效值
 {
-    // 创建一个新的屏幕缓冲区 (而不是获取标准句柄)
+    // 创建一个新的屏幕缓冲区
     m_hConsole = CreateConsoleScreenBuffer(
-        GENERIC_READ | GENERIC_WRITE,   // 读写权限
-        0,                              // 不共享
+        GENERIC_READ | GENERIC_WRITE,
+        0,
         NULL,
         CONSOLE_TEXTMODE_BUFFER,
         NULL
@@ -28,7 +54,7 @@ Screen::Screen()
         throw std::runtime_error("Failed to create console screen buffer.");
     }
 
-    // 将这个新缓冲区设为活动屏幕
+    // 将新缓冲区设为活动屏幕
     if (!SetConsoleActiveScreenBuffer(m_hConsole)) {
         throw std::runtime_error("Failed to set active console screen buffer.");
     }
@@ -44,50 +70,64 @@ Screen::Screen()
 }
 
 /**
- * @brief 析构函数实现
+ * @brief 析构函数
  */
 Screen::~Screen()
 {
     if (m_hConsole != INVALID_HANDLE_VALUE) {
+        // 恢复默认颜色并显示光标
+        std::wstring resetCmd;
+        resetCmd.append(VT_RESET);
+        resetCmd.append(VT_CURSOR_SHOW);
+
+        DWORD written = 0;
+        WriteConsoleW(m_hConsole, resetCmd.c_str(), (DWORD)resetCmd.length(), &written, NULL);
+        
         CloseHandle(m_hConsole);
     }
 }
 
 /**
- * @brief 清空缓冲区.
+ * @brief 清空缓冲区
  */
-void Screen::clearBuffer(short color)
+void Screen::clearBuffer(COLORREF rbgColor)
 {
-    CHAR_INFO defaultChar;
-    defaultChar.Char.UnicodeChar = L' ';
-    defaultChar.Attributes = color; // 默认属性 (例如: 黑底)
+    Cell defaultCell;
+    defaultCell.ch = L' ';
+    defaultCell.fg = RGB(200, 200, 200); // 默认灰色前景
+    defaultCell.bg = rbgColor;
 
-    m_buffer.fill(defaultChar); 
+    m_buffer.fill(defaultCell); 
 }
 
 /**
  * @brief 在缓冲区绘制单个字符
  */
-void Screen::draw(int x, int y, wchar_t ch, short color)
+void Screen::draw(int x, int y, wchar_t ch, COLORREF fg, COLORREF bg)
 {
     if (isInConsole(x, y)) 
     {
-        m_buffer[y * screen::WIDTH + x].Char.UnicodeChar = ch;
-        m_buffer[y * screen::WIDTH + x].Attributes = color;
+        Cell& cell = m_buffer[y * screen::WIDTH + x];
+        cell.ch = ch;
+        cell.fg = fg;
+        cell.bg = bg;
     }
 }
 
 /**
  * @brief 在缓冲区绘制字符串
  */
-void Screen::draw(int x, int y, std::wstring_view sv, short color)
+void Screen::draw(int x, int y, std::wstring_view sv, COLORREF fg, COLORREF bg)
 {
-    for (size_t i = 0; i < sv.size(); ++i)
+    for (int i = 0; i < sv.size(); ++i)
     {
-        int px = x + static_cast<int>(i);
-        if (isInConsole(px, y)) {
-            m_buffer[y * screen::WIDTH + px].Char.UnicodeChar = sv[i];
-            m_buffer[y * screen::WIDTH + px].Attributes = color;
+        int px = x + i;
+        if (isInConsole(px, y)) 
+        {
+            Cell& cell = m_buffer[y * screen::WIDTH + px];
+            cell.ch = sv[i];
+            cell.fg = fg;
+            cell.bg = bg;
         }
     }
 }
@@ -98,19 +138,57 @@ void Screen::draw(int x, int y, std::wstring_view sv, short color)
  */
 void Screen::refresh()
 {
-    
-    COORD bufferSize = { screen::WIDTH, screen::HEIGHT };
-    
-    COORD bufferCoord = { 0, 0 };
-    
-    SMALL_RECT writeRegion = { 0, 0, screen::WIDTH - 1, screen::HEIGHT - 1 };
+    // 清空并重用字符串流
+    m_frameBuilder.str(L"");
+    m_frameBuilder.clear();
 
-    WriteConsoleOutputW(
-        m_hConsole,         // 目标句柄
-        m_buffer.data(),    // 源数据 (CHAR_INFO 数组)
-        bufferSize,         // 源数据大小
-        bufferCoord,        // 源数据起始坐标
-        &writeRegion        // 目标写入区域
+    // 将光标移到左上角 (0,0), 这是无闪烁的关键
+    m_frameBuilder << VT_CURSOR_HOME;
+
+    COLORREF lastFg = -1; // 使用无效颜色强制第一次设置
+    COLORREF lastBg = -1;
+
+    for (int y = 0; y < screen::HEIGHT; ++y) 
+    {
+        for (int x = 0; x < screen::WIDTH; ++x) 
+        {
+            const Cell& cell = m_buffer[y * screen::WIDTH + x];
+
+            // 仅在颜色改变时才设置 VT 码 (高效)
+            if (cell.fg != lastFg) 
+            {
+                m_frameBuilder  << VT_FG_TRUECOLOR 
+                                << GetRValue(cell.fg) << L";"
+                                << GetGValue(cell.fg) << L";" 
+                                << GetBValue(cell.fg) 
+                                << VT_SGR_SUFFIX;
+                lastFg = cell.fg;
+            }
+            if (cell.bg != lastBg)
+            {
+                m_frameBuilder  << VT_BG_TRUECOLOR 
+                                << GetRValue(cell.bg) << L";"
+                                << GetGValue(cell.bg) << L";" 
+                                << GetBValue(cell.bg) 
+                                << VT_SGR_SUFFIX;
+                lastBg = cell.bg;
+            }
+
+            // 写入字符
+            m_frameBuilder << cell.ch;
+        }
+    }
+
+    std::wstring frame = m_frameBuilder.str();
+    DWORD bytesWritten = 0;
+    
+    // 将构建好的整个帧字符串一次性写入控制台
+    WriteConsoleW(
+        m_hConsole,
+        frame.c_str(),
+        static_cast<DWORD>(frame.length()),
+        &bytesWritten,
+        NULL
     );
 }
 
@@ -119,17 +197,26 @@ void Screen::refresh()
  */
 void Screen::initConsole()
 {
-    // 隐藏光标
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(m_hConsole, &cursorInfo);
-    cursorInfo.bVisible = FALSE; // 隐藏
-    SetConsoleCursorInfo(m_hConsole, &cursorInfo);
+    // 隐藏光标 (使用 VT 序列, 与析构函数保持一致)
+    DWORD written = 0;
+    WriteConsoleW(m_hConsole, VT_CURSOR_HIDE.data(), (DWORD)VT_CURSOR_HIDE.length(), &written, NULL);
+
+    // 启用虚拟终端 (VT) 处理
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(m_hConsole, &dwMode)) {
+        throw std::runtime_error("Failed to get console mode.");
+    }
+
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    if (!SetConsoleMode(m_hConsole, dwMode)) {
+        throw std::runtime_error("Failed to enable virtual terminal processing.");
+    }
 }
 
 /**
  * @brief 坐标边界检查
  */
-bool Screen::isInConsole(int x, int y) const // 标记为 const
+bool Screen::isInConsole(int x, int y) const
 {
     return x >= 0 && x < screen::WIDTH && y >= 0 && y < screen::HEIGHT;
 }
