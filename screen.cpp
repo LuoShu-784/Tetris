@@ -92,7 +92,7 @@ void Screen::clearBuffer(COLORREF rbgColor)
 {
     Cell defaultCell;
     defaultCell.ch = L' ';
-    defaultCell.fg = RGB(200, 200, 200); // 默认灰色前景
+    defaultCell.fg = screen::color::GRAY;
     defaultCell.bg = rbgColor;
 
     m_buffer.fill(defaultCell); 
@@ -117,7 +117,8 @@ void Screen::draw(int x, int y, wchar_t ch, COLORREF fg, COLORREF bg)
  */
 void Screen::draw(int x, int y, std::wstring_view sv, COLORREF fg, COLORREF bg)
 {
-    for (int i = 0; i < sv.size(); ++i)
+    int len = static_cast<int>(sv.length());
+    for (int i = 0; i < len; i++)
     {
         int px = x + i;
         if (isInConsole(px, y)) 
