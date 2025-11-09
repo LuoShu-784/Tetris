@@ -3,7 +3,7 @@
  * @brief Screen 类的实现 (支持真彩色)
  * @details 实现了 Screen 中定义的 Windows 控制台功能.
  * @author LuoShu
- * @version 2.0
+ * @version 2.1
  * @date 2025-11-09
  */
 #include "screen.h"
@@ -26,8 +26,6 @@ namespace {
     // 设置背景色
     constexpr std::wstring_view VT_BG_TRUECOLOR = L"\x1b[48;2;";
 
-    // 将光标移至左上角 (0, 0)
-    constexpr std::wstring_view VT_CURSOR_HOME = L"\x1b[0;0H";
     // 显示光标 (DEC private mode)
     constexpr std::wstring_view VT_CURSOR_SHOW = L"\x1b[?25h";
     // 隐藏光标 (DEC private mode)
@@ -142,14 +140,14 @@ void Screen::refresh()
     m_frameBuilder.str(L"");
     m_frameBuilder.clear();
 
-    // 将光标移到左上角 (0,0), 这是无闪烁的关键
-    m_frameBuilder << VT_CURSOR_HOME;
-
     COLORREF lastFg = -1; // 使用无效颜色强制第一次设置
     COLORREF lastBg = -1;
 
     for (int y = 0; y < screen::HEIGHT; ++y) 
     {
+        // VT 序列坐标是 1-based, 所以 y=0 是第 1 行
+        m_frameBuilder << L"\x1b[" << (y + 1) << L";1H";
+
         for (int x = 0; x < screen::WIDTH; ++x) 
         {
             const Cell& cell = m_buffer[y * screen::WIDTH + x];
