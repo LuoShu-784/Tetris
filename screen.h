@@ -28,30 +28,21 @@ namespace screen {
      * 所有常量均为 COLORREF 类型, 可直接用于 Screen::draw()
      */
     namespace color {
-        // --- 基础色 ---
-        inline constexpr COLORREF BLACK       { RGB(0, 0, 0) };
-        inline constexpr COLORREF WHITE       { RGB(255, 255, 255) };
-        inline constexpr COLORREF GRAY        { RGB(128, 128, 128) };
-        inline constexpr COLORREF LIGHT_GRAY  { RGB(192, 192, 192) };
-        inline constexpr COLORREF DARK_GRAY   { RGB(64, 64, 64) };
 
-        // --- 亮色 (饱和色) ---
-        inline constexpr COLORREF RED         { RGB(255, 0, 0) };
-        inline constexpr COLORREF GREEN       { RGB(0, 255, 0) };
-        inline constexpr COLORREF BLUE        { RGB(0, 0, 255) };
-        inline constexpr COLORREF YELLOW      { RGB(255, 255, 0) };
-        inline constexpr COLORREF CYAN        { RGB(0, 255, 255) };
-        inline constexpr COLORREF MAGENTA     { RGB(255, 0, 255) };
-
-        // --- 暗色 (不饱和色) ---
-        inline constexpr COLORREF DARK_RED    { RGB(128, 0, 0) };
-        inline constexpr COLORREF DARK_GREEN  { RGB(0, 128, 0) };
-        inline constexpr COLORREF DARK_BLUE   { RGB(0, 0, 128) };
-
-        // --- 其他 ---
-        inline constexpr COLORREF ORANGE      { RGB(255, 165, 0) };
-        inline constexpr COLORREF PINK        { RGB(255, 192, 203) };
-        inline constexpr COLORREF PURPLE      { RGB(128, 0, 128) };
+        inline constexpr COLORREF BLACK       { RGB(30,30,30) };
+        inline constexpr COLORREF WHITE       { RGB(255,255,255) };
+        inline constexpr COLORREF GRAY        { RGB(128,128,128) };
+        inline constexpr COLORREF LIGHT_GRAY  { RGB(192,192,192) };
+        inline constexpr COLORREF DARK_GRAY   { RGB(64,64,64) } ;
+        inline constexpr COLORREF RED         { RGB(220,20,60) };
+        inline constexpr COLORREF GREEN       { RGB(124,252,0) };
+        inline constexpr COLORREF BLUE        { RGB(30,144,255) };
+        inline constexpr COLORREF YELLOW      { RGB(255,255,0) };
+        inline constexpr COLORREF CYAN        { RGB(64,224,208) };
+        inline constexpr COLORREF MAGENTA     { RGB(255,0,255) };
+        inline constexpr COLORREF ORANGE      { RGB(255,140,0) };
+        inline constexpr COLORREF PINK        { RGB(255,105,180) };
+        inline constexpr COLORREF PURPLE      { RGB(128,0,128) };
     }
 };
 
