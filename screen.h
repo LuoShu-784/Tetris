@@ -3,7 +3,7 @@
  * @brief 定义 Screen 类, 用于 Windows 控制台
  * @details 使用 VT 序列实现高效、无闪烁的真彩色双缓冲
  * @author LuoShu
- * @version 2.1
+ * @version 2.2
  * @date 2025-11-09
  */
 #pragma once

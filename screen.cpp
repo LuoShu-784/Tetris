@@ -1,9 +1,9 @@
 /**
  * @file screen.cpp
  * @brief Screen 类的实现 (支持真彩色)
- * @details 实现了 Screen 中定义的 Windows 控制台功能.
+ * @details 实现了 Screen 中定义的 Windows 控制台功能
  * @author LuoShu
- * @version 2.1
+ * @version 2.2
  * @date 2025-11-09
  */
 #include "screen.h"
@@ -26,9 +26,15 @@ namespace {
     // 设置背景色
     constexpr std::wstring_view VT_BG_TRUECOLOR = L"\x1b[48;2;";
 
-    // 显示光标 (DEC private mode)
+
+    // 禁用自动换行
+    constexpr std::wstring_view VT_AUTOWRAP_OFF = L"\x1b[?7l"; 
+    // 启用自动换行 (恢复默认)
+    constexpr std::wstring_view VT_AUTOWRAP_ON = L"\x1b[?7h";
+
+    // 显示光标
     constexpr std::wstring_view VT_CURSOR_SHOW = L"\x1b[?25h";
-    // 隐藏光标 (DEC private mode)
+    // 隐藏光标
     constexpr std::wstring_view VT_CURSOR_HIDE = L"\x1b[?25l";
 }
 
@@ -77,6 +83,7 @@ Screen::~Screen()
         std::wstring resetCmd;
         resetCmd.append(VT_RESET);
         resetCmd.append(VT_CURSOR_SHOW);
+        resetCmd.append(VT_AUTOWRAP_ON);
 
         DWORD written = 0;
         WriteConsoleW(m_hConsole, resetCmd.c_str(), (DWORD)resetCmd.length(), &written, NULL);
@@ -200,13 +207,16 @@ void Screen::initConsole()
     DWORD written = 0;
     WriteConsoleW(m_hConsole, VT_CURSOR_HIDE.data(), (DWORD)VT_CURSOR_HIDE.length(), &written, NULL);
 
+    // 禁用自动换行, 防止在写入时触发滚动
+    WriteConsoleW(m_hConsole, VT_AUTOWRAP_OFF.data(), (DWORD)VT_AUTOWRAP_OFF.length(), &written, NULL);
+
     // 启用虚拟终端 (VT) 处理
     DWORD dwMode = 0;
     if (!GetConsoleMode(m_hConsole, &dwMode)) {
         throw std::runtime_error("Failed to get console mode.");
     }
 
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     if (!SetConsoleMode(m_hConsole, dwMode)) {
         throw std::runtime_error("Failed to enable virtual terminal processing.");
     }
