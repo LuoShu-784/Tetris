@@ -4,7 +4,7 @@
  * @details 使用 VT 序列实现高效、无闪烁的真彩色双缓冲
  * @author LuoShu
  * @version 2.2
- * @date 2025-11-09
+ * @date 2025-11-10
  */
 #pragma once
 

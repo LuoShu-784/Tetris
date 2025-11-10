@@ -325,7 +325,6 @@ void Tetris::drawBlock(const Block& block, int xOffset, int yOffset)
                 int screenX { xOffset + (block.getX() + x) * 2 };
                 int screenY { yOffset + block.getY()  + y } ;
 
-                // 注意: 这里的 .draw 调用 (5个参数) 与 screen.h (4个参数) 不匹配
                 m_screen.draw(screenX, screenY, L'█', color, screen::color::BLACK);
                 m_screen.draw(screenX + 1, screenY, L'█', color, screen::color::BLACK);
             }
